@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Transactions</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+</head>
+<body class="container py-4">
+  <h1 class="mb-3">💰 Transactions</h1>
+  <a href="/" class="btn btn-secondary mb-3">⬅ Back to Dashboard</a>
+  <a href="/transaction_report" class="btn btn-success mb-3">📊 View Transaction Report</a>
+
+  <!-- Filter Form -->
+  <form action="/transactions" method="get" class="row g-3 mb-4">
+    <div class="col-md-3">
+      <select name="filter" class="form-control" onchange="toggleMonthInput(this.value)">
+        <option value="all" {% if filter_type == 'all' %}selected{% endif %}>All Transactions</option>
+        <option value="unpaid" {% if filter_type == 'unpaid' %}selected{% endif %}>Unpaid Tenants</option>
+        <option value="month" {% if filter_type == 'month' %}selected{% endif %}>Specific Month</option>
+      </select>
+    </div>
+    <div class="col-md-3" id="monthInput" style="display: {% if filter_type == 'month' %}block{% else %}none{% endif %}">
+      <input type="month" name="month" value="{{ month_filter }}" class="form-control">
+    </div>
+    <div class="col-md-3">
+      <button type="submit" class="btn btn-primary">Apply Filter</button>
+    </div>
+  </form>
+
+  <script>
+    function toggleMonthInput(value) {
+      const monthInput = document.getElementById('monthInput');
+      if (value === 'month') {
+        monthInput.style.display = 'block';
+      } else {
+        monthInput.style.display = 'none';
+      }
+    }
+  </script>
+
+  <!-- Add Transaction Form -->
+  <form action="/add_transaction" method="post" class="row g-3 mb-4">
+    <div class="col-md-3">
+      <select name="lease_id" class="form-control" required>
+        <option value="">Select Lease</option>
+        {% for l in leases %}
+          <option value="{{ l.lease_id }}">Lease {{ l.lease_id }} - {{ l.tenant_name }} (Room {{ l.room_id }})</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="col-md-3">
+      <input type="date" name="transaction_date" class="form-control" required>
+    </div>
+    <div class="col-md-3">
+      <input type="number" name="amount" placeholder="Amount" step="0.01" class="form-control" required>
+    </div>
+    <div class="col-md-3">
+      <button type="submit" class="btn btn-success">Add Transaction</button>
+    </div>
+  </form>
+
+  <!-- Transactions Table -->
+  <table class="table table-striped">
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Tenant</th>
+        <th>Room</th>
+        <th>Date</th>
+        <th>Amount</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for tr in transactions %}
+      <tr>
+        <td>{{ tr.transaction_id }}</td>
+        <td>{{ tr.tenant_name }}</td>
+        <td>{{ tr.room_id }}</td>
+        <td>{{ tr.transaction_date }}</td>
+        <td>{{ tr.amount }}</td>
+        <td>
+          <a href="/edit_transaction/{{ tr.transaction_id }}" class="btn btn-warning btn-sm">Edit</a>
+          <a href="/delete_transaction/{{ tr.transaction_id }}" class="btn btn-danger btn-sm">Delete</a>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</body>
+</html>
+

@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Edit Transaction</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+</head>
+<body class="container py-4">
+  <h1>Edit Transaction</h1>
+  <form action="/edit_transaction/{{ transaction.transaction_id }}" method="post" class="row g-3">
+    <div class="col-md-3">
+      <select name="lease_id" class="form-control" required>
+        {% for l in leases %}
+          <option value="{{ l.lease_id }}" {% if l.lease_id == transaction.lease_id %}selected{% endif %}>
+            Lease {{ l.lease_id }} - {{ l.tenant_name }} (Room {{ l.room_id }})
+          </option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="col-md-3">
+      <input type="date" name="transaction_date" value="{{ transaction.transaction_date }}" class="form-control" required>
+    </div>
+    <div class="col-md-3">
+      <input type="number" name="amount" step="0.01" value="{{ transaction.amount }}" class="form-control" required>
+    </div>
+    <div class="col-md-3">
+      <button type="submit" class="btn btn-success">Update</button>
+      <a href="/transactions" class="btn btn-secondary">Cancel</a>
+    </div>
+  </form>
+</body>
+</html>

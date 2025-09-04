@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Manage Leases</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+</head>
+<body class="container py-4">
+  <h1 class="mb-3">📑 Leases</h1>
+  <a href="/" class="btn btn-secondary mb-3">⬅ Back to Dashboard</a>
+
+  <!-- Add Lease Form -->
+  <form action="/add_lease" method="post" class="row g-3 mb-4">
+    <div class="col-md-3">
+      <select name="tenant_id" class="form-control" required>
+        <option value="">Select Tenant</option>
+        {% for t in tenants %}
+          <option value="{{ t.tenant_id }}">{{ t.tenant_name }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="col-md-2">
+      <select name="room_id" class="form-control" required>
+        <option value="">Select Room</option>
+        {% for r in rooms %}
+          <option value="{{ r.room_id }}">Room {{ r.room_id }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="col-md-2">
+      <input type="date" name="month_start" class="form-control" required>
+    </div>
+    <div class="col-md-2">
+      <input type="number" name="total_months" placeholder="Months" class="form-control" required>
+    </div>
+    <div class="col-md-2">
+      <input type="number" step="0.01" name="percentage_cleared" placeholder="% Cleared" class="form-control" required>
+    </div>
+    <div class="col-md-1">
+      <button type="submit" class="btn btn-success">Add</button>
+    </div>
+  </form>
+
+  <!-- Leases Table -->
+  <table class="table table-striped">
+    <thead>
+      <tr>
+        <th>Lease ID</th>
+        <th>Tenant</th>
+        <th>Room</th>
+        <th>Start Date</th>
+        <th>Total Months</th>
+        <th>% Cleared</th>
+        <th>Monthly Fee</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for lease in leases %}
+      <tr>
+        <td>{{ lease.lease_id }}</td>
+        <td>{{ lease.tenant_name }}</td>
+        <td>{{ lease.room_id }}</td>
+        <td>{{ lease.month_start }}</td>
+        <td>{{ lease.total_number_of_months }}</td>
+        <td>{{ lease.percentage_cleared }}</td>
+        <td>{{ lease.monthly_fee }}</td>
+        <td>
+          <a href="/edit_lease/{{ lease.lease_id }}" class="btn btn-warning btn-sm">Edit</a>
+          <a href="/delete_lease/{{ lease.lease_id }}" class="btn btn-danger btn-sm">Delete</a>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</body>
+</html>
