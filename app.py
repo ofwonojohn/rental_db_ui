@@ -3,13 +3,11 @@ import mysql.connector
 
 app = Flask(__name__)
 
-# -------------------------
 # Database Connection
-# ------------------------
 db = mysql.connector.connect(
     host="localhost",
-    user="root",              # replace with your MySQL username
-    password="@0706647669J",  # replace with your MySQL password
+    user="root",              
+    password="@0706647669J", 
     database="rental_management"
 )
 cursor = db.cursor(dictionary=True)
@@ -317,6 +315,70 @@ def transaction_report():
     cursor.execute(query)
     report = cursor.fetchall()
     return render_template('transaction_report.html', report=report)
+
+# Reports Dashboard
+@app.route('/reports')
+def reports():
+    return render_template('reports.html')
+
+
+# Monthly Rent Collection
+@app.route('/report_monthly_collection')
+def report_monthly_collection():
+    query = """
+        SELECT 
+            YEAR(transaction_date) AS year,
+            MONTH(transaction_date) AS month,
+            SUM(amount) AS total_collected
+        FROM transactions
+        GROUP BY YEAR(transaction_date), MONTH(transaction_date)
+        ORDER BY year, month;
+    """
+    cursor.execute(query)
+    report = cursor.fetchall()
+    return render_template('report_monthly_collection.html', report=report)
+
+
+# Outstanding Balances
+@app.route('/report_outstanding')
+def report_outstanding():
+    query = """
+        SELECT 
+            t.tenant_name,
+            r.room_id,
+            (l.total_number_of_months * r.monthly_fee) AS total_due,
+            IFNULL(SUM(tr.amount),0) AS total_paid,
+            ((l.total_number_of_months * r.monthly_fee) - IFNULL(SUM(tr.amount),0)) AS balance
+        FROM lease l
+        JOIN tenant t ON l.tenant_id = t.tenant_id
+        JOIN room r ON l.room_id = r.room_id
+        LEFT JOIN transactions tr ON l.lease_id = tr.lease_id
+        GROUP BY l.lease_id
+        HAVING balance > 0;
+    """
+    cursor.execute(query)
+    report = cursor.fetchall()
+    return render_template('report_outstanding.html', report=report)
+
+
+# Manager Performance
+@app.route('/report_manager_performance')
+def report_manager_performance():
+    query = """
+        SELECT 
+            pm.manager_name,
+            SUM(tr.amount) AS total_collected
+        FROM property_manager pm
+        JOIN room r ON pm.manager_id = r.manager_id
+        JOIN lease l ON r.room_id = l.room_id
+        JOIN transactions tr ON l.lease_id = tr.lease_id
+        GROUP BY pm.manager_id
+        ORDER BY total_collected DESC;
+    """
+    cursor.execute(query)
+    report = cursor.fetchall()
+    return render_template('report_manager_performance.html', report=report)
+
 
 # Run App
 if __name__ == '__main__':
