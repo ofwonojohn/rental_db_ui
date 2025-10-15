@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, url_for
+from flask import Flask, render_template, request, redirect, url_for, jsonify
 import mysql.connector
 
 app = Flask(__name__)
@@ -7,7 +7,7 @@ app = Flask(__name__)
 db = mysql.connector.connect(
     host="localhost",
     user="root",              
-    password="", #replace wih ur MySQL workbench password
+    password="@0706647669J", #replace wih ur MySQL workbench password
     database="rental_management"
 )
 cursor = db.cursor(dictionary=True)
@@ -326,7 +326,7 @@ def reports():
 @app.route('/report_monthly_collection')
 def report_monthly_collection():
     query = """
-        SELECT 
+        SELECT
             YEAR(transaction_date) AS year,
             MONTH(transaction_date) AS month,
             SUM(amount) AS total_collected
@@ -337,6 +337,41 @@ def report_monthly_collection():
     cursor.execute(query)
     report = cursor.fetchall()
     return render_template('report_monthly_collection.html', report=report)
+
+@app.route('/api/monthly_collection')
+def api_monthly_collection():
+    month = request.args.get('month')
+
+    if month:
+        query = """
+            SELECT
+                YEAR(transaction_date) AS year,
+                MONTH(transaction_date) AS month,
+                SUM(amount) AS total_collected
+            FROM transactions
+            WHERE MONTH(transaction_date) = %s
+            GROUP BY YEAR(transaction_date), MONTH(transaction_date)
+            ORDER BY year, month
+        """
+        cursor.execute(query, (month,))
+        data = cursor.fetchall()
+    else:
+        query = """
+            SELECT
+                YEAR(transaction_date) AS year,
+                MONTH(transaction_date) AS month,
+                SUM(amount) AS total_collected
+            FROM transactions
+            GROUP BY YEAR(transaction_date), MONTH(transaction_date)
+            ORDER BY year, month
+        """
+        cursor.execute(query)
+        data = cursor.fetchall()
+
+    return jsonify({
+        'labels': [f"{row['year']}-{row['month']:02d}" for row in data],
+        'data': [row['total_collected'] for row in data]
+    })
 
 
 # Outstanding Balances
